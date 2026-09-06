@@ -68,7 +68,7 @@ const Projects: React.FC = () => {
         </div>
 
         {/* Enhanced Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProjects.map((project, index) => {
             const primaryCategory = Array.isArray(project.category) ? project.category[0] : project.category;
             const IconComponent = categoryIcons[primaryCategory] || categoryIcons['Default'];
@@ -78,7 +78,7 @@ const Projects: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-[1.02] overflow-hidden animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards flex flex-col h-full"
+                className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-[1.02] overflow-hidden animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards"
                 style={{
                   animationDelay: `${index * 150}ms`,
                   animationFillMode: 'both'
@@ -131,7 +131,7 @@ const Projects: React.FC = () => {
                 </div>
 
                 {/* Enhanced Project Content */}
-                <div className="p-6 flex flex-col flex-1">
+                <div className="p-6">
                   <h3 className={`text-xl font-bold mb-3 bg-gradient-to-r ${projectGradient} bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300`}>
                     {project.title}
                   </h3>
@@ -160,7 +160,7 @@ const Projects: React.FC = () => {
                   </div>
 
                   {/* Technologies — pinned to bottom */}
-                  <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {project.technologies.map((tech: string, techIndex: number) => (
                       <span
                         key={techIndex}
@@ -173,7 +173,7 @@ const Projects: React.FC = () => {
                 </div>
 
                 {/* Enhanced Project Footer — always at bottom */}
-                <div className="px-6 pb-6 mt-auto">
+                <div className="px-6 pb-6">
                   <div className="flex flex-col gap-3">
                     {project.githubUrl && project.githubUrl !== '#' && (
                       <a
