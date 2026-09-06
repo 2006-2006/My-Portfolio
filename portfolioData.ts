@@ -246,7 +246,7 @@ export const portfolioData = {
             technologies: ['Power BI', 'SQL', 'Power Query', 'DAX', 'Excel'],
             githubUrl: '#',
             liveUrl: null,
-            image: 'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=500',
+            image: 'https://images.pexels.com/photos/1595385/pexels-photo-1595385.jpeg?auto=compress&cs=tinysrgb&w=500&v=new',
             features: [
                 'Interactive business intelligence dashboard',
                 'Data cleaning, transformation, ETL and data modeling',
