@@ -1,229 +1,331 @@
-import React, { useState } from 'react';
-import { ExternalLink, Github, Filter, Brain, BarChart, Globe, Sparkles, Zap } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ExternalLink, Github, Brain, BarChart, Globe, Sparkles, ArrowUpRight } from 'lucide-react';
 import { portfolioData } from './portfolioData';
 
-// Map icons from strings/category to Lucide components
-const categoryIcons: { [key: string]: React.ElementType } = {
-  'Machine Learning': Brain,
-  'Web App': Globe,
-  'Data Analysis': BarChart,
-  'Default': Sparkles
+const categoryMeta: Record<string, { gradient: string; glow: string; badge: string }> = {
+  'Machine Learning': {
+    gradient: 'from-violet-500 to-purple-600',
+    glow: 'rgba(139,92,246,0.35)',
+    badge: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+  },
+  'Web App': {
+    gradient: 'from-emerald-500 to-cyan-500',
+    glow: 'rgba(16,185,129,0.35)',
+    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  },
+  'Data Analysis': {
+    gradient: 'from-orange-500 to-amber-500',
+    glow: 'rgba(249,115,22,0.35)',
+    badge: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  },
+  'AI': {
+    gradient: 'from-cyan-500 to-blue-500',
+    glow: 'rgba(6,182,212,0.35)',
+    badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+  },
 };
 
-const categoryGradients: { [key: string]: string } = {
-  'Machine Learning': 'from-blue-500 to-purple-600',
-  'Web App': 'from-emerald-500 to-cyan-600',
-  'Data Analysis': 'from-orange-500 to-amber-600',
-  'Default': 'from-violet-500 to-fuchsia-600'
+const getCategoryMeta = (category: string | string[]) => {
+  const key = Array.isArray(category) ? category[0] : category;
+  return categoryMeta[key] ?? {
+    gradient: 'from-pink-500 to-fuchsia-600',
+    glow: 'rgba(236,72,153,0.35)',
+    badge: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+  };
 };
 
+/* ── Spotlight Card ── */
+const ProjectCard: React.FC<{ project: typeof portfolioData.projects[0]; index: number; visible: boolean }> = ({
+  project, index, visible
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState(false);
+  const meta = getCategoryMeta(project.category);
+  const categories = Array.isArray(project.category) ? project.category : [project.category];
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    setPos({ x: e.clientX - r.left, y: e.clientY - r.top });
+  };
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative overflow-hidden rounded-3xl flex flex-col transition-all duration-500"
+      style={{
+        background: 'rgba(15,23,42,0.85)',
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${hovered ? meta.glow.replace('0.35', '0.7') : 'rgba(71,85,105,0.35)'}`,
+        boxShadow: hovered
+          ? `0 0 40px -10px ${meta.glow}, 0 25px 60px -20px rgba(0,0,0,0.7)`
+          : '0 4px 30px -8px rgba(0,0,0,0.5)',
+        transform: visible
+          ? hovered ? 'translateY(-8px)' : 'translateY(0)'
+          : 'translateY(32px)',
+        opacity: visible ? 1 : 0,
+        transition: `opacity 0.6s ease ${index * 120}ms, transform 0.5s ease ${index * 120}ms, box-shadow 0.4s ease, border-color 0.4s ease`,
+      }}
+    >
+      {/* Spotlight */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300"
+        style={{
+          opacity: hovered ? 1 : 0,
+          background: `radial-gradient(500px circle at ${pos.x}px ${pos.y}px, ${meta.glow.replace('0.35', '0.12')}, transparent 60%)`,
+        }}
+      />
+
+      {/* Top shimmer line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px z-20 transition-opacity duration-500"
+        style={{
+          opacity: hovered ? 1 : 0,
+          background: `linear-gradient(90deg, transparent 0%, ${meta.glow.replace('0.35', '0.9')} 50%, transparent 100%)`,
+        }}
+      />
+
+      {/* Image */}
+      <div className="relative h-52 overflow-hidden flex-shrink-0">
+        <img
+          src={project.image}
+          alt={project.title}
+          className="w-full h-full object-cover transition-transform duration-700"
+          style={{ transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
+        />
+        {/* gradient overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-t ${meta.gradient} opacity-50`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent" />
+
+        {/* Category badges */}
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-20">
+          {categories.slice(0, 2).map((cat) => (
+            <span
+              key={cat}
+              className={`px-3 py-1 rounded-full text-[11px] font-bold border backdrop-blur-sm ${getCategoryMeta(cat).badge}`}
+            >
+              {cat}
+            </span>
+          ))}
+        </div>
+
+        {/* Action icons top-right */}
+        <div
+          className="absolute top-4 right-4 flex gap-2 z-20 transition-all duration-300"
+          style={{ opacity: hovered ? 1 : 0, transform: hovered ? 'translateY(0)' : 'translateY(-8px)' }}
+        >
+          {project.githubUrl && project.githubUrl !== '#' && (
+            <a
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl bg-black/50 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors duration-200"
+            >
+              <Github className="w-4 h-4 text-white" />
+            </a>
+          )}
+          {project.liveUrl && project.liveUrl !== '#' && !project.underMaintenance && (
+            <a
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl bg-black/50 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors duration-200"
+            >
+              <ArrowUpRight className="w-4 h-4 text-white" />
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 flex flex-col gap-4 flex-1 relative z-10">
+        {/* Title */}
+        <h3
+          className={`text-xl font-bold bg-gradient-to-r ${meta.gradient} bg-clip-text text-transparent leading-tight`}
+        >
+          {project.title}
+        </h3>
+
+        {/* Description — clamped to 3 lines */}
+        <p className="text-slate-400 text-sm leading-relaxed line-clamp-3">
+          {project.description}
+        </p>
+
+        {/* Key Features */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" /> Key Features
+          </p>
+          <ul className="space-y-1.5">
+            {project.features.slice(0, 3).map((f: string, i: number) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-400">
+                <span
+                  className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${meta.glow.replace('0.35', '1')}, transparent)` }}
+                />
+                <span className="line-clamp-1">{f}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Tech stack */}
+        <div className="flex flex-wrap gap-1.5 mt-auto">
+          {project.technologies.slice(0, 5).map((tech: string) => (
+            <span
+              key={tech}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 border border-slate-700/60 bg-slate-800/50"
+            >
+              {tech}
+            </span>
+          ))}
+          {project.technologies.length > 5 && (
+            <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-500 border border-slate-700/40">
+              +{project.technologies.length - 5}
+            </span>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3 pt-1">
+          {project.githubUrl && project.githubUrl !== '#' && (
+            <a
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-300 border border-slate-700/60 bg-slate-800/50 hover:bg-slate-700/60 hover:text-white hover:border-slate-600 transition-all duration-200"
+            >
+              <Github className="w-4 h-4" /> View Code
+            </a>
+          )}
+          {project.liveUrl && project.liveUrl !== '#' && !project.underMaintenance && (
+            <a
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${meta.gradient} hover:opacity-90 hover:shadow-lg transition-all duration-200`}
+              style={{ boxShadow: hovered ? `0 4px 20px ${meta.glow}` : 'none' }}
+            >
+              <ArrowUpRight className="w-4 h-4" /> Live Demo
+            </a>
+          )}
+          {project.underMaintenance && (
+            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium text-orange-400 border border-orange-500/30 bg-orange-500/10">
+              ⚠️ Under Maintenance
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════════════ */
 const Projects: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('All');
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setIsVisible(true); io.disconnect(); }
+    }, { threshold: 0.08 });
+    if (sectionRef.current) io.observe(sectionRef.current);
+    return () => io.disconnect();
+  }, []);
 
   const projects = portfolioData.projects;
   const filters = ['All', 'Machine Learning', 'Data Analysis', 'Web App'];
 
   const filteredProjects = activeFilter === 'All'
     ? projects
-    : projects.filter(project => 
-        Array.isArray(project.category) 
-          ? project.category.includes(activeFilter) 
-          : project.category === activeFilter
+    : projects.filter(p =>
+        Array.isArray(p.category) ? p.category.includes(activeFilter) : p.category === activeFilter
       );
 
   return (
-    <section id="projects" className="py-20 bg-slate-50 dark:bg-gray-900 relative overflow-hidden animate-section-pop">
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-pop-in" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-flow">
+    <section
+      id="projects"
+      ref={sectionRef}
+      className="py-24 relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' }}
+    >
+      {/* Ambient glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-1/3 w-96 h-96 rounded-full opacity-15 blur-[100px]"
+          style={{ background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full opacity-15 blur-[100px]"
+          style={{ background: 'radial-gradient(circle, #0891b2 0%, transparent 70%)' }} />
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(148,163,184,1) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+
+        {/* Header */}
+        <div className={`text-center mb-14 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-slate-700/60 bg-slate-800/40 backdrop-blur-sm mb-6">
+            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Portfolio</span>
+          </div>
+          <h2
+            className="text-5xl md:text-6xl font-extrabold tracking-tight mb-5"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
+            <span className="text-white">Featured </span>
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)' }}
+            >
               Projects
             </span>
           </h2>
-          <p className="text-xl text-gray-500 dark:text-gray-200 max-w-3xl mx-auto mb-8 animate-pop-in-delay">
-            Explore my latest projects that showcase my skills in AI and Data Science
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto font-light">
+            Real-world AI, data engineering, and full-stack projects I've built from scratch.
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto animate-scale-in"></div>
         </div>
 
-        {/* Enhanced Filter Buttons */}
-        <div className="flex justify-center mb-12 animate-pop-in-delay-2">
-          <div className="flex flex-wrap gap-3 bg-gray-100 dark:bg-gray-800 p-2 rounded-2xl shadow-lg">
-            {filters.map((filter) => (
+        {/* Filter pills */}
+        <div className={`flex justify-center mb-12 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-slate-800/50 border border-slate-700/40 backdrop-blur-sm">
+            {filters.map((f) => (
               <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 transform hover:scale-105 ${activeFilter === filter
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-700'
-                  }`}
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                  activeFilter === f
+                    ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                }`}
               >
-                <Filter className="w-4 h-4" />
-                {filter}
-                {activeFilter === filter && <Sparkles className="w-4 h-4 animate-spin" />}
+                {f}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Enhanced Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project, index) => {
-            const primaryCategory = Array.isArray(project.category) ? project.category[0] : project.category;
-            const IconComponent = categoryIcons[primaryCategory] || categoryIcons['Default'];
-            const projectGradient = categoryGradients[primaryCategory] || categoryGradients['Default'];
-            const isHovered = hoveredProject === index;
-
-            return (
-              <div
-                key={index}
-                className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-[1.02] overflow-hidden animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards"
-                style={{
-                  animationDelay: `${index * 150}ms`,
-                  animationFillMode: 'both'
-                }}
-                onMouseEnter={() => setHoveredProject(index)}
-                onMouseLeave={() => setHoveredProject(null)}
-              >
-                {/* Enhanced Project Image */}
-                <div className="relative overflow-hidden h-56">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${projectGradient} opacity-60`}></div>
-
-                  {/* Floating Category Badge */}
-                  <div className="absolute top-4 left-4 flex items-center animate-bounce-gentle">
-                    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-bold text-gray-700 dark:text-gray-100 flex items-center gap-2 shadow-lg">
-                      <IconComponent className="w-4 h-4" />
-                      {Array.isArray(project.category) ? project.category.join(' & ') : project.category}
-                      <Zap className="w-3 h-3 text-yellow-500 animate-pulse" />
-                    </div>
-                  </div>
-
-                  {/* Enhanced Action Buttons */}
-                  <div className={`absolute bottom-4 right-4 flex gap-3 transition-all duration-300 ${isHovered ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'
-                    }`}>
-                    {project.githubUrl && project.githubUrl !== '#' && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 transform hover:scale-110 shadow-lg"
-                      >
-                        <Github className="w-5 h-5 text-gray-700 dark:text-gray-100" />
-                      </a>
-                    )}
-                    {project.liveUrl && project.liveUrl !== '#' && (
-                      <a
-                        href={project.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 transform hover:scale-110 shadow-lg"
-                      >
-                        <ExternalLink className="w-5 h-5 text-gray-700 dark:text-gray-100" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {/* Enhanced Project Content */}
-                <div className="p-6">
-                  <h3 className={`text-xl font-bold mb-3 bg-gradient-to-r ${projectGradient} bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300`}>
-                    {project.title}
-                  </h3>
-
-                  <p className="text-gray-500 dark:text-gray-200 text-sm leading-relaxed mb-4">
-                    {project.description}
-                  </p>
-
-                  {/* Key Features - Always visible */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-yellow-500" />
-                      Key Features
-                    </h4>
-                    <ul className="space-y-1">
-                      {project.features.map((feature: string, featureIndex: number) => (
-                        <li
-                          key={featureIndex}
-                          className="text-xs text-gray-500 dark:text-gray-300 flex items-start gap-2"
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${projectGradient} mt-1.5 flex-shrink-0 animate-pulse`}></span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Technologies — pinned to bottom */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologies.map((tech: string, techIndex: number) => (
-                      <span
-                        key={techIndex}
-                        className={`px-3 py-1 bg-gradient-to-r ${projectGradient} bg-opacity-10 text-gray-600 dark:text-gray-200 text-xs rounded-full font-medium border border-gray-200 dark:border-gray-600 hover:scale-105 transition-transform duration-200`}
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Enhanced Project Footer — always at bottom */}
-                <div className="px-6 pb-6">
-                  <div className="flex flex-col gap-3">
-                    {project.githubUrl && project.githubUrl !== '#' && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-300 text-sm font-medium transform hover:scale-105"
-                      >
-                        <Github className="w-4 h-4" />
-                        View Code
-                      </a>
-                    )}
-                    {project.liveUrl && project.liveUrl !== '#' && !project.underMaintenance && (
-                      <a
-                        href={project.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r ${projectGradient} text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium transform hover:scale-105`}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Live Demo
-                      </a>
-                    )}
-                    {project.underMaintenance && (
-                      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 text-xs font-medium cursor-not-allowed">
-                        <span className="flex items-center gap-1 text-orange-500 animate-pulse">
-                          ⚠️ Under Maintenance
-                        </span>
-                        <span className="text-[10px] opacity-80">
-                          Coming End of May
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project, index) => (
+            <ProjectCard key={project.title} project={project} index={index} visible={isVisible} />
+          ))}
         </div>
 
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12 animate-pop-in">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
-              No projects found for the selected filter.
-            </p>
+          <div className="text-center py-16">
+            <p className="text-slate-500 text-lg">No projects found for this filter.</p>
           </div>
         )}
       </div>
-
-
     </section>
   );
 };
