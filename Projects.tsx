@@ -38,39 +38,48 @@ const getCategoryMeta = (category: string | string[]) => {
 const ProjectCard: React.FC<{ project: typeof portfolioData.projects[0]; index: number; visible: boolean }> = ({
   project, index, visible
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
   const meta = getCategoryMeta(project.category);
   const categories = Array.isArray(project.category) ? project.category : [project.category];
 
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
+    if (!innerRef.current) return;
+    const r = innerRef.current.getBoundingClientRect();
     setPos({ x: e.clientX - r.left, y: e.clientY - r.top });
   };
 
   return (
     <div
-      ref={ref}
-      onMouseMove={onMouseMove}
+      ref={outerRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative overflow-hidden rounded-3xl flex flex-col transition-all duration-500"
+      onMouseMove={onMouseMove}
+      className="relative"
       style={{
-        background: 'rgba(15,23,42,0.85)',
-        backdropFilter: 'blur(20px)',
-        border: `1px solid ${hovered ? meta.glow.replace('0.35', '0.7') : 'rgba(71,85,105,0.35)'}`,
-        boxShadow: hovered
-          ? `0 0 40px -10px ${meta.glow}, 0 25px 60px -20px rgba(0,0,0,0.7)`
-          : '0 4px 30px -8px rgba(0,0,0,0.5)',
-        transform: visible
-          ? hovered ? 'translateY(-8px)' : 'translateY(0)'
-          : 'translateY(32px)',
         opacity: visible ? 1 : 0,
-        transition: `opacity 0.6s ease ${index * 120}ms, transform 0.5s ease ${index * 120}ms, box-shadow 0.4s ease, border-color 0.4s ease`,
+        transition: `opacity 0.6s ease ${index * 120}ms`,
       }}
     >
+      {/* Inner div: animates freely without affecting hover detection */}
+      <div
+        ref={innerRef}
+        className="relative overflow-hidden rounded-3xl flex flex-col"
+        style={{
+          background: 'rgba(15,23,42,0.85)',
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${hovered ? meta.glow.replace('0.35', '0.7') : 'rgba(71,85,105,0.35)'}`,
+          boxShadow: hovered
+            ? `0 0 40px -10px ${meta.glow}, 0 25px 60px -20px rgba(0,0,0,0.7)`
+            : '0 4px 30px -8px rgba(0,0,0,0.5)',
+          transform: visible
+            ? hovered ? 'translateY(-8px)' : 'translateY(0)'
+            : 'translateY(32px)',
+          transition: `transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease, border-color 0.3s ease`,
+        }}
+      >
       {/* Spotlight */}
       <div
         className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300"
@@ -219,6 +228,7 @@ const ProjectCard: React.FC<{ project: typeof portfolioData.projects[0]; index: 
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
