@@ -68,7 +68,7 @@ const Projects: React.FC = () => {
         </div>
 
         {/* Enhanced Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {filteredProjects.map((project, index) => {
             const primaryCategory = Array.isArray(project.category) ? project.category[0] : project.category;
             const IconComponent = categoryIcons[primaryCategory] || categoryIcons['Default'];
@@ -78,7 +78,7 @@ const Projects: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-[1.02] overflow-hidden animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards"
+                className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 hover:scale-[1.02] overflow-hidden animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards flex flex-col h-full"
                 style={{
                   animationDelay: `${index * 150}ms`,
                   animationFillMode: 'both'
@@ -131,7 +131,7 @@ const Projects: React.FC = () => {
                 </div>
 
                 {/* Enhanced Project Content */}
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-1">
                   <h3 className={`text-xl font-bold mb-3 bg-gradient-to-r ${projectGradient} bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300`}>
                     {project.title}
                   </h3>
@@ -140,35 +140,31 @@ const Projects: React.FC = () => {
                     {project.description}
                   </p>
 
-                  {/* Key Features - Animated Popup */}
-                  {isHovered && (
-                    <div className="mb-4 animate-fade-in-up">
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-yellow-500 animate-spin" />
-                        Key Features
-                      </h4>
-                      <ul className="space-y-1">
-                        {project.features.map((feature: string, featureIndex: number) => (
-                          <li
-                            key={featureIndex}
-                            className="text-xs text-gray-500 dark:text-gray-300 flex items-start gap-2"
-                            style={{ animationDelay: `${featureIndex * 0.1}s` }}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${projectGradient} mt-1.5 flex-shrink-0 animate-pulse`}></span>
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {/* Key Features - Always visible */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
+                      Key Features
+                    </h4>
+                    <ul className="space-y-1">
+                      {project.features.map((feature: string, featureIndex: number) => (
+                        <li
+                          key={featureIndex}
+                          className="text-xs text-gray-500 dark:text-gray-300 flex items-start gap-2"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${projectGradient} mt-1.5 flex-shrink-0 animate-pulse`}></span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-                  {/* Technologies */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  {/* Technologies — pinned to bottom */}
+                  <div className="flex flex-wrap gap-2 mt-auto pt-2">
                     {project.technologies.map((tech: string, techIndex: number) => (
                       <span
                         key={techIndex}
                         className={`px-3 py-1 bg-gradient-to-r ${projectGradient} bg-opacity-10 text-gray-600 dark:text-gray-200 text-xs rounded-full font-medium border border-gray-200 dark:border-gray-600 hover:scale-105 transition-transform duration-200`}
-                        style={{ animationDelay: `${techIndex * 0.05}s` }}
                       >
                         {tech}
                       </span>
@@ -176,8 +172,8 @@ const Projects: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Project Footer */}
-                <div className="px-6 pb-6">
+                {/* Enhanced Project Footer — always at bottom */}
+                <div className="px-6 pb-6 mt-auto">
                   <div className="flex flex-col gap-3">
                     {project.githubUrl && project.githubUrl !== '#' && (
                       <a
