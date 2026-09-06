@@ -142,7 +142,7 @@ const ProjectCard: React.FC<{ project: typeof portfolioData.projects[0]; index: 
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col gap-4 flex-1 relative z-10">
+      <div className="p-6 flex flex-col gap-4 relative z-10">
         {/* Title */}
         <h3
           className={`text-xl font-bold bg-gradient-to-r ${meta.gradient} bg-clip-text text-transparent leading-tight`}
@@ -174,7 +174,7 @@ const ProjectCard: React.FC<{ project: typeof portfolioData.projects[0]; index: 
         </div>
 
         {/* Tech stack */}
-        <div className="flex flex-wrap gap-1.5 mt-auto">
+        <div className="flex flex-wrap gap-1.5">
           {project.technologies.slice(0, 5).map((tech: string) => (
             <span
               key={tech}
@@ -314,7 +314,7 @@ const Projects: React.FC = () => {
         </div>
 
         {/* Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {filteredProjects.map((project, index) => (
             <ProjectCard key={project.title} project={project} index={index} visible={isVisible} />
           ))}
